@@ -1,0 +1,18 @@
+/************************************************************
+************************************************************/
+■mac
+	https://original-game.com/mac-text-read-aloud/
+	
+■mac say command
+	"_"は、タメになるようだ
+	http://d.hatena.ne.jp/nacookan/20081220/1229745342
+
+■say -r ...defines speed and default is 175 or 180.
+	https://apple.stackexchange.com/questions/96808/what-is-the-default-speaking-rate-for-the-speech-synthesis-program
+	
+■macの音声読み上げ用fileを削除する
+	http://min117.hatenablog.com/entry/2016/09/22/060437
+	
+	
+	
+	
