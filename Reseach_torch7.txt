@@ -1,0 +1,130 @@
+/************************************************************
+Research : 機械学習を使った映像作成
+
+description
+	鯨井さんから、以下のサイトを教えてもらい、実際に動かしてみた.
+		github
+			https://github.com/manuelruder/artistic-videos
+			https://github.com/jcjohnson/neural-style#setup
+************************************************************/
+prepare
+	homebrew
+	ffmpeg
+	
+install lua via homebrew
+	https://qiita.com/setouchi/items/d868193c0d87c2b01685
+
+mac os Xでtorchをインストール
+	http://paper.hatenadiary.jp/entry/2016/10/10/214456
+	
+	official
+		http://torch.ch/docs/getting-started.html
+
+	actual
+		make files below ... ~/
+			.bash_profile
+			.bashrc
+		
+		git clone https://github.com/torch/distro.git ~/torch --recursive
+		cd ~/torch; bash install-deps;
+		./install.sh
+			yes.
+		
+		source ~/.bashrc
+		
+		luarocks install image
+		luarocks list
+		
+		th // check if installed
+		
+loadcaffe
+	brew install protobuf
+	luarocks install loadcaffe
+	
+For OpenCL backend:
+	cltorch
+	clnn
+		https://github.com/hughperkins/cltorch
+			says :	Simply doing luarocks install cltorch is no longer supported
+					Please see distro-cl for installation instructions.
+					
+		https://github.com/hughperkins/distro-cl
+			上記サイトの通り進めると、cltorch, clnn, 共にinstallされるようだ
+		
+		actual step
+			git clone --recursive https://github.com/hughperkins/distro -b distro-cl ~/torch-cl
+			cd ~/torch-cl
+			bash install-deps
+				password required
+				
+				何やらErrorなど出たが、そのまま進んだ
+				
+			./install.sh
+			
+			to test input below
+				source ~/torch-cl/install/bin/torch-activate
+				luajit -l torch -e 'torch.test()'
+	
+
+execute 
+	git clone : https://github.com/manuelruder/artistic-videos
+
+	sh models/download_models.sh
+	
+	th artistic_video.lua -style_image test/style.jpg -content_pattern test/org_0.jpg -num_images 1 -start_number 1 -gpu -1
+	
+	->Error says...
+		Wrong JPEG library version: library is 90	
+		
+		https://github.com/torch/image/issues/16
+		の JohnZed commented on 25 Sep 2014
+		に従い
+			[nobuhiro@sjmac Frameworks]$find /usr/ /Library/ /opt/ /lib/ -iname "libjpeg*.dylib" 2>/dev/null
+			/usr//local/Cellar/jpeg/9b/lib/libjpeg.9.dylib
+			/usr//local/Cellar/jpeg/9b/lib/libjpeg.dylib
+			/usr//local/Cellar/jpeg/9c/lib/libjpeg.9.dylib
+			/usr//local/Cellar/jpeg/9c/lib/libjpeg.dylib
+			/usr//local/lib/libjpeg.9.dylib
+			/usr//local/lib/libjpeg.dylib
+			/Library//Frameworks/Mono.framework/Versions/5.8.1/lib/libjpeg.8.dylib
+			/Library//Frameworks/Mono.framework/Versions/5.8.1/lib/libjpeg.dylib
+			/Library//Internet Plug-Ins/JavaAppletPlugin.plugin/Contents/Home/lib/libjpeg.dylib
+			/Library//Java/JavaVirtualMachines/jdk1.8.0_91.jdk/Contents/Home/jre/lib/libjpeg.dylib
+		
+		/Library//Frameworks/Mono.framework/Versions/5.8.1/lib/libjpeg.8.dylib
+		が、libjpeg.8.dylib を使っていて、怪しい.
+		
+		そこで、
+			https://github.com/torch/image/issues/137
+		の bakercp commented on 8 Jan 2016
+			This should fix it:
+				Move the /Library/Frameworks/Mono.framework folder to a temporary folder
+				luarocks install image (should pick up the newer version of libpng)
+		に従い、
+		Mono.framework folder をdesktopに移し、
+			luarocks remove image
+			luarocks install image
+
+		再チャレンジ
+		th artistic_video.lua -style_image test/style.jpg -content_pattern test/org_0.jpg -num_images 1 -start_number 1 -gpu -1
+		でOK.
+		
+install cuda
+	https://github.com/torch/cunn
+	
+	git clone https://github.com/torch/cunn
+	cd cunn
+	luarocks make rocks/cunn-scm-1.rockspec
+		
+		->Error...
+		
+	but openclで動かすには、やはりcudaは不要だったので、ここまで、
+	
+
+backendにopenclを設定 : -backend clnn
+	th artistic_video.lua -style_image test/style.jpg -content_pattern test/org_0.jpg -num_images 1 -start_number 1 -num_iterations 100,200 -backend clnn -style_weight 1e1 -gpu 0
+	
+	th artistic_video.lua -style_image test/style.jpg -content_pattern test/cont.jpg -num_images 1 -start_number 1 -num_iterations 100,200 -gpu -1
+	
+	
+
